@@ -1,65 +1,44 @@
 package com.javatechie.crud.example.repository;
 
-import com.javatechie.crud.example.entity.Product;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith; // Not Given By AI
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import com.javatechie.crud.example.entity.Product;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Persistence;
-import javax.transaction.Transactional;
+import javax.persistence.TypedQuery;
 
+import static org.mockito.Mockito.*;
+
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
-@ContextConfiguration(initializers = ProductRepositoryTest.Initializer.class)
-@Testcontainers
-public class ProductRepositoryTest {
+class ProductRepositoryTest {
 
-  @Container
-  public static MySQLContainer<?> mySQLContainer = new MySQLContainer<>();
+    @MockBean
+    private EntityManager entityManager;
 
-  private static EntityManager entityManager;
+    @MockBean
+    private TypedQuery<Product> query;
 
-  @BeforeAll
-  public static void setUp() {
-    mySQLContainer.start();
-    entityManager = Persistence.createEntityManagerFactory("your-persistence-unit-name")
-        .createEntityManager();
-  }
+    @Test
+    void testFindByName() {
+        String name = "test";
+        String jpql = "SELECT p FROM Product p WHERE p.name = :name";
 
-  @Test
-  @Transactional
-  public void testFindByName() {
-    ProductRepository productRepository = new ProductRepository();
-    productRepository.entityManager = entityManager;
+        when(entityManager.createQuery(jpql, Product.class)).thenReturn(query);
+        when(query.setParameter("name", name)).thenReturn(query);
+        when(query.getSingleResult()).thenReturn(new Product());
 
-    // Call the findByName method
-    Product product = productRepository.findByName("SampleProduct");
+        ProductRepository productRepository = new ProductRepository();
+        productRepository.entityManager = entityManager;
 
-    // Assertions or validations for the result
-  }
+        Product result = productRepository.findByName(name);
 
-  @AfterAll
-  public static void tearDown() {
-    entityManager.close();
-    mySQLContainer.stop();
-  }
-
-  static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-    @Override
-    public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-      TestPropertyValues.of(
-          "spring.datasource.url=" + mySQLContainer.getJdbcUrl(),
-          "spring.datasource.username=" + mySQLContainer.getUsername(),
-          "spring.datasource.password=" + mySQLContainer.getPassword()
-      ).applyTo(configurableApplicationContext.getEnvironment());
+        verify(entityManager, times(1)).createQuery(jpql, Product.class);
+        verify(query, times(1)).setParameter("name", name);
+        verify(query, times(1)).getSingleResult();
     }
-  }
 }
