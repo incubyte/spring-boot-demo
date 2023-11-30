@@ -1,3 +1,4 @@
+```java
 package com.javatechie.crud.example.repository;
 
 import com.javatechie.crud.example.entity.Product;
@@ -15,10 +16,10 @@ public class ProductRepository {
   public EntityManager entityManager;
 
   public Product findByName(String name) {
-      // WARNING: The following line is vulnerable to SQL injection!
-      String sql = "SELECT p FROM Product p WHERE p.name = '" + name + "'";
-      return entityManager.createQuery(sql, Product.class)
-          .getSingleResult();
+    String jpql = "SELECT p FROM Product p WHERE p.name = :name";
+    return entityManager.createQuery(jpql, Product.class)
+        .setParameter("name", name)
+        .getSingleResult();
   }
 
   @Transactional
@@ -64,3 +65,4 @@ public class ProductRepository {
         .getResultList();
   }
 }
+```
