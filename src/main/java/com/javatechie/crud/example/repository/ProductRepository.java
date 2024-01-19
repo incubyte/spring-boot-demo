@@ -30,7 +30,29 @@ public class ProductRepository {
   @Transactional
   public void deleteById(int id) {
     Product product = entityManager.find(Product.class, id);
-    if (product != null) {
+    if (product != // Original function code
+public void executeQuery(String sql) {
+    Connection connection = getConnection();
+    Statement statement = connection.createStatement();
+    ResultSet resultSet = statement.executeQuery(sql);
+    // process the result set
+    // ...
+}
+
+
+```java
+// Resolved function code
+public void executeQuery(String sql) {
+    Connection connection = getConnection();
+    PreparedStatement statement = connection.prepareStatement(sql);
+    ResultSet resultSet = statement.executeQuery();
+    // process the result set
+    // ...
+}
+```
+
+Explanation:
+To prevent SQL injection, it is recommended to use prepared statements instead of concatenating user input directly into the SQL statement. Prepared statements automatically handle escaping and sanitizing user input, making it safe to use in SQL queries. In the resolved code, the `Statement` object is replaced with a `PreparedStatement` object, and the `executeQuery` method is called without any parameters since the SQL statement is already set in the prepared statement.) {
       entityManager.remove(product);
     }
   }
