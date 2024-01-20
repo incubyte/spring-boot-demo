@@ -15,9 +15,10 @@ public class ProductRepository {
   public EntityManager entityManager;
 
   public Product findByName(String name) {
-      // WARNING: The following line is vulnerable to SQL injection!
-      String sql = "SELECT p FROM Product p WHERE p.name = '" + name + "'";
+      // Use prepared statement to prevent SQL injection
+      String sql = "SELECT p FROM Product p WHERE p.name = ?";
       return entityManager.createQuery(sql, Product.class)
+          .setParameter(1, name)
           .getSingleResult();
   }
 
